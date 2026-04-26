@@ -8,13 +8,19 @@
  *
  * This is designed for environments like Vercel where yt-dlp is not
  * pre-installed but /tmp is writable (~512 MB).
+ *
+ * Bot-bypass args
+ * ---------------
+ * Use getYtDlpBaseArgs() to get a set of flags that bypass YouTube's
+ * "Sign in to confirm" bot detection. Optionally, set the YOUTUBE_COOKIES
+ * environment variable (Netscape/cookies.txt format) to authenticate with
+ * a real session.
  */
 
 import { Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as https from 'https';
-import * as path from 'path';
-import { chmod } from 'fs/promises';
+import { chmod, writeFile } from 'fs/promises';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 
@@ -22,11 +28,13 @@ const execFileAsync = promisify(execFile);
 const logger = new Logger('YtdlpPath');
 
 const TMP_BIN = '/tmp/yt-dlp';
+const TMP_COOKIES = '/tmp/yt-cookies.txt';
 // Pinned release — bump as needed, or use /latest/download/ for always-latest
 const DOWNLOAD_URL =
   'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
 
 let resolvedPath: string | null = null;
+let cookiesWritten = false;
 
 /** Download a URL to a local file path, following redirects. */
 function downloadFile(url: string, dest: string): Promise<void> {
@@ -42,11 +50,10 @@ function downloadFile(url: string, dest: string): Promise<void> {
               reject(new Error('Redirect with no Location header'));
               return;
             }
-            // Convert relative redirect to absolute
             const nextUrl = location.startsWith('http')
               ? location
               : new URL(location, currentUrl).toString();
-            res.resume(); // drain
+            res.resume();
             get(nextUrl);
             return;
           }
@@ -58,7 +65,7 @@ function downloadFile(url: string, dest: string): Promise<void> {
           file.on('finish', () => file.close(() => resolve()));
         })
         .on('error', (err) => {
-          fs.unlink(dest, () => {}); // clean up partial file
+          fs.unlink(dest, () => {});
           reject(err);
         });
     };
@@ -115,3 +122,31 @@ export async function getYtDlpPath(): Promise<string> {
   resolvedPath = TMP_BIN;
   return resolvedPath;
 }
+
+/**
+ * Returns additional yt-dlp flags that bypass YouTube bot detection and
+ * optionally attach a cookie session.
+ *
+ * Env vars:
+ *  - YOUTUBE_COOKIES  — raw Netscape cookies.txt content (optional).
+ *                       When set the content is written once to /tmp/yt-cookies.txt
+ *                       and passed via --cookies.
+ */
+export async function getYtDlpBaseArgs(): Promise<string[]> {
+  const args: string[] = [
+    // Use the iOS player client — avoids "Sign in to confirm" bot detection
+    '--extractor-args', 'youtube:player_client=ios',
+  ];
+
+  const cookiesEnv = process.env.YOUTUBE_COOKIES;
+  if (cookiesEnv) {
+    if (!cookiesWritten) {
+      await writeFile(TMP_COOKIES, cookiesEnv, { mode: 0o600 });
+      cookiesWritten = true;
+    }
+    args.push('--cookies', TMP_COOKIES);
+  }
+
+  return args;
+}
+
