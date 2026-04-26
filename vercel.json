@@ -10,7 +10,7 @@
       }
     },
     {
-      "src": "apps/web/next.config.js",
+      "src": "apps/web/package.json",
       "use": "@vercel/next"
     }
   ],
