@@ -1,6 +1,11 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { spawn } from 'child_process';
+import { spawn, execFile } from 'child_process';
+import { promisify } from 'util';
 import axios from 'axios';
+
+const execFileAsync = promisify(execFile);
+const YTDLP_BIN = process.env.YTDLP_PATH || 'yt-dlp';
+const VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/
 
 export interface VideoInfo {
   title: string;
@@ -147,5 +152,33 @@ export class VideoInfoService {
       return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
     return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  /**
+   * Fetch raw yt-dlp JSON for a YouTube video ID.
+   * Returns the full metadata object exactly as yt-dlp outputs it.
+   */
+  async getRawInfo(videoId: string): Promise<Record<string, any>> {
+    return this.fetchYtInfo(videoId);
+  }
+
+  private async fetchYtInfo(videoId: string): Promise<Record<string, any>> {
+    if (!VIDEO_ID_RE.test(videoId)) {
+      throw new HttpException('Invalid video ID', HttpStatus.BAD_REQUEST);
+    }
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    try {
+      const { stdout } = await execFileAsync(
+        YTDLP_BIN,
+        ['-j', '--no-playlist', '--no-warnings', url],
+        { timeout: 30_000 },
+      );
+      return JSON.parse(stdout) as Record<string, any>;
+    } catch (err) {
+      throw new HttpException(
+        `yt-dlp failed: ${(err as Error).message}`,
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
   }
 }

@@ -44,4 +44,34 @@ export class VideoInfoController {
       throw err;
     }
   }
+
+  @Get('raw')
+  @ApiOperation({ summary: 'Get raw yt-dlp JSON metadata by video ID (x-api-key or Bearer JWT)' })
+  @ApiQuery({ name: 'videoId', description: 'YouTube video ID (11 chars)', required: true })
+  async getRaw(@Query('videoId') videoId: string, @Req() req: any) {
+    const userApiKeyId = req.userApiKey?._id?.toString() || null;
+    try {
+      const info = await this.videoInfoService.getRawInfo(videoId);
+      await this.reportService.createLog({
+        endpoint: '/api/video-info/raw',
+        providerUsed: 'yt-dlp',
+        userApiKeyId,
+        status: 'success',
+        statusCode: 200,
+        query: videoId,
+      });
+      return info;
+    } catch (err) {
+      await this.reportService.createLog({
+        endpoint: '/api/video-info/raw',
+        providerUsed: 'yt-dlp',
+        userApiKeyId,
+        status: 'error',
+        statusCode: err.status || 500,
+        query: videoId,
+        errorMessage: err.message,
+      });
+      throw err;
+    }
+  }
 }
