@@ -133,19 +133,29 @@
       backgroundColor: 'rgba(239,68,68,0.15)',
     };
 
+    function toLocalDateStr(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    }
+
     function getFilters() {
+      const fromVal = document.getElementById('f-from').value;
+      const toVal = document.getElementById('f-to').value;
       return {
-        from: document.getElementById('f-from').value,
-        to: document.getElementById('f-to').value,
+        from: fromVal ? `${fromVal}T00:00:00.000` : '',
+        to: toVal ? `${toVal}T23:59:59.999` : '',
         provider: document.getElementById('f-provider').value,
       };
     }
 
-    // Set default date range (last 7 days)
-    const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    document.getElementById('f-from').value = weekAgo.toISOString().split('T')[0];
-    document.getElementById('f-to').value = now.toISOString().split('T')[0];
+    // Set default date range: start = 7 days ago 00:00:00, end = today 23:59:59
+    const today = new Date();
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 7);
+    document.getElementById('f-from').value = toLocalDateStr(weekAgo);
+    document.getElementById('f-to').value = toLocalDateStr(today);
 
     async function loadAll() {
       currentPage = 1;
@@ -282,8 +292,8 @@
 
     document.getElementById('apply-filters').addEventListener('click', loadAll);
     document.getElementById('reset-filters').addEventListener('click', () => {
-      document.getElementById('f-from').value = weekAgo.toISOString().split('T')[0];
-      document.getElementById('f-to').value = now.toISOString().split('T')[0];
+      document.getElementById('f-from').value = toLocalDateStr(weekAgo);
+      document.getElementById('f-to').value = toLocalDateStr(today);
       document.getElementById('f-provider').value = '';
       loadAll();
     });

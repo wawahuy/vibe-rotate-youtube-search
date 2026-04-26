@@ -24,30 +24,10 @@ export class KeyRotationService {
    * Auto-resets keys whose resetAt time has passed.
    */
   async getActiveKey(provider: string): Promise<ActiveKey | null> {
-    const now = new Date();
-
-    // Reset any exhausted keys whose resetAt has passed
-    const resetResult = await this.apiKeyModel.updateMany(
-      {
-        provider,
-        status: ApiKeyStatus.EXHAUSTED,
-        resetAt: { $ne: null, $lte: now },
-      },
-      {
-        $set: { status: ApiKeyStatus.ACTIVE, quotaUsed: 0, resetAt: null },
-      },
-    );
-
-    if (resetResult.modifiedCount > 0) {
-      this.logger.log(
-        `Reset ${resetResult.modifiedCount} exhausted ${provider} key(s)`,
-      );
-    }
-
-    // Pick one active key (round-robin by least recently used would be ideal,
-    // but for simplicity we just grab any active key)
+    // Pick one active key (rotate by least-used: sort by quotaUsed ascending)
     const key = await this.apiKeyModel
       .findOne({ provider, status: ApiKeyStatus.ACTIVE })
+      .sort({ quotaUsed: 1 })
       .exec();
 
     if (!key) {
@@ -71,14 +51,14 @@ export class KeyRotationService {
   }
 
   /**
-   * Mark a key as exhausted. Sets resetAt to 24 h from now by default.
+   * Auto-deactivate a key when its quota is exhausted.
+   * Requires manual re-activation via the admin UI.
    */
-  async markKeyExhausted(keyId: string, resetAt?: Date): Promise<void> {
-    const resetTime = resetAt ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
+  async markKeyExhausted(keyId: string): Promise<void> {
     await this.apiKeyModel.findByIdAndUpdate(keyId, {
-      $set: { status: ApiKeyStatus.EXHAUSTED, resetAt: resetTime },
+      $set: { status: ApiKeyStatus.DISABLED },
     });
-    this.logger.warn(`Key ${keyId} marked exhausted. Resets at ${resetTime.toISOString()}`);
+    this.logger.warn(`Key ${keyId} auto-deactivated (quota exhausted)`);
   }
 
   /** Increment quota usage on a provider key */

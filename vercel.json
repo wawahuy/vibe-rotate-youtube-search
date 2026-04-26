@@ -1,16 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "builds": [
-    {
-      "src": "dist/lambda.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/dist/lambda.js"
-    }
-  ]
+  "buildCommand": "npm run vercel-build"
 }

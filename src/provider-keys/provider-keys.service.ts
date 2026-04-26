@@ -64,6 +64,22 @@ export class ProviderKeysService {
     return updated;
   }
 
+  async disableKey(id: string): Promise<ApiKeyDocument> {
+    const updated = await this.apiKeyModel
+      .findByIdAndUpdate(id, { status: ApiKeyStatus.DISABLED }, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException(`Provider key ${id} not found`);
+    return updated;
+  }
+
+  async activateKey(id: string): Promise<ApiKeyDocument> {
+    const updated = await this.apiKeyModel
+      .findByIdAndUpdate(id, { status: ApiKeyStatus.ACTIVE }, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException(`Provider key ${id} not found`);
+    return updated;
+  }
+
   /** Return sanitized list (key masked) */
   sanitize(keys: ApiKeyDocument[]) {
     return keys.map((k) => ({

@@ -160,6 +160,10 @@
             </td>
             <td class="px-6 py-3 text-slate-400 text-xs">${k.resetAt ? formatDate(k.resetAt) : '—'}</td>
             <td class="px-6 py-3 text-right space-x-2">
+              ${k.status === 'disabled'
+                ? `<button onclick="activateKey('${k._id}')" class="text-xs px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-colors">Activate</button>`
+                : `<button onclick="deactivateKey('${k._id}')" class="text-xs px-3 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded-lg transition-colors">Deactivate</button>`
+              }
               <button onclick="resetKey('${k._id}')" class="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">Reset</button>
               <button onclick="editKey('${k._id}')" class="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">Edit</button>
               <button onclick="deleteKey('${k._id}')" class="text-xs px-3 py-1 bg-red-900/40 hover:bg-red-900/70 text-red-300 rounded-lg transition-colors">Delete</button>
@@ -191,6 +195,24 @@
       document.getElementById('f-quota').value = key.quotaLimit;
       document.getElementById('form-error').classList.add('hidden');
       modal.classList.remove('hidden');
+    }
+
+    async function deactivateKey(id) {
+      if (!confirm('Deactivate this key?')) return;
+      try {
+        await API.post(`/provider-keys/${id}/disable`);
+        toast('Key deactivated');
+        loadKeys();
+      } catch (err) { toast(err.message, 'error'); }
+    }
+
+    async function activateKey(id) {
+      if (!confirm('Re-activate this key?')) return;
+      try {
+        await API.post(`/provider-keys/${id}/activate`);
+        toast('Key activated');
+        loadKeys();
+      } catch (err) { toast(err.message, 'error'); }
     }
 
     async function resetKey(id) {

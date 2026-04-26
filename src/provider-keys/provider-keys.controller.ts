@@ -60,6 +60,20 @@ export class ProviderKeysController {
     return this.service.sanitize([key])[0];
   }
 
+  @Post(':id/disable')
+  @ApiOperation({ summary: 'Manually deactivate a provider key' })
+  async disable(@Param('id') id: string) {
+    const key = await this.service.disableKey(id);
+    return this.service.sanitize([key])[0];
+  }
+
+  @Post(':id/activate')
+  @ApiOperation({ summary: 'Re-activate a disabled provider key' })
+  async activate(@Param('id') id: string) {
+    const key = await this.service.activateKey(id);
+    return this.service.sanitize([key])[0];
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a provider key' })
