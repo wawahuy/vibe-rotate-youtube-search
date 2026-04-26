@@ -1,0 +1,151 @@
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { spawn } from 'child_process';
+import axios from 'axios';
+
+export interface VideoInfo {
+  title: string;
+  duration: number | null;       // seconds
+  durationFormatted: string | null;
+  viewCount: number | null;
+  uploader: string | null;
+  thumbnail: string | null;
+  description: string | null;
+  uploadDate: string | null;
+  webpage_url: string | null;
+}
+
+@Injectable()
+export class VideoInfoService {
+  private readonly logger = new Logger(VideoInfoService.name);
+
+  async getVideoInfo(url: string): Promise<VideoInfo> {
+    // Validate URL to prevent injection — must be a valid http/https URL
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      throw new HttpException('Invalid URL', HttpStatus.BAD_REQUEST);
+    }
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      throw new HttpException('Only http/https URLs are supported', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      return await this.runYtDlp(url);
+    } catch (ytDlpErr) {
+      this.logger.warn(`yt-dlp failed for ${url}: ${ytDlpErr.message}. Using fallback.`);
+      return this.fallback(url);
+    }
+  }
+
+  private runYtDlp(url: string): Promise<VideoInfo> {
+    return new Promise((resolve, reject) => {
+      // Using spawn with args array — no shell interpolation, safe from injection
+      const proc = spawn('yt-dlp', ['--no-playlist', '-J', url], {
+        timeout: 30000,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      proc.stdout.on('data', (chunk: Buffer) => {
+        stdout += chunk.toString();
+      });
+      proc.stderr.on('data', (chunk: Buffer) => {
+        stderr += chunk.toString();
+      });
+
+      proc.on('error', (err) => {
+        reject(new Error(`yt-dlp not found or failed to start: ${err.message}`));
+      });
+
+      proc.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(stderr || `yt-dlp exited with code ${code}`));
+          return;
+        }
+        try {
+          const data = JSON.parse(stdout);
+          resolve(this.parseYtDlpOutput(data, url));
+        } catch (parseErr) {
+          reject(new Error(`Failed to parse yt-dlp output: ${parseErr.message}`));
+        }
+      });
+    });
+  }
+
+  private parseYtDlpOutput(data: any, url: string): VideoInfo {
+    const seconds = data.duration ?? null;
+    return {
+      title: data.title ?? null,
+      duration: seconds,
+      durationFormatted: seconds != null ? this.formatDuration(seconds) : null,
+      viewCount: data.view_count ?? null,
+      uploader: data.uploader ?? data.channel ?? null,
+      thumbnail: data.thumbnail ?? null,
+      description: data.description ? data.description.slice(0, 500) : null,
+      uploadDate: data.upload_date
+        ? `${data.upload_date.slice(0, 4)}-${data.upload_date.slice(4, 6)}-${data.upload_date.slice(6, 8)}`
+        : null,
+      webpage_url: data.webpage_url ?? url,
+    };
+  }
+
+  /** Fallback: use YouTube oEmbed API (no key required) */
+  private async fallback(url: string): Promise<VideoInfo> {
+    const videoId = this.extractVideoId(url);
+    if (!videoId) {
+      throw new HttpException(
+        'Cannot extract video info: yt-dlp unavailable and invalid YouTube URL',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    try {
+      const { data } = await axios.get(
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`,
+        { timeout: 8000 },
+      );
+      return {
+        title: data.title ?? null,
+        duration: null,
+        durationFormatted: null,
+        viewCount: null,
+        uploader: data.author_name ?? null,
+        thumbnail: data.thumbnail_url ?? null,
+        description: null,
+        uploadDate: null,
+        webpage_url: `https://www.youtube.com/watch?v=${videoId}`,
+      };
+    } catch (err) {
+      throw new HttpException(
+        `Fallback oEmbed failed: ${err.message}`,
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  private extractVideoId(url: string): string | null {
+    const patterns = [
+      /[?&]v=([a-zA-Z0-9_-]{11})/,
+      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /shorts\/([a-zA-Z0-9_-]{11})/,
+      /embed\/([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  }
+
+  private formatDuration(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) {
+      return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+}

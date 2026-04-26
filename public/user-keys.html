@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User API Keys — YouTube Rotate API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>if (!localStorage.getItem('admin_token')) window.location.href = '/index.html';</script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex">
+
+  <aside class="w-56 bg-slate-800 border-r border-slate-700 flex flex-col min-h-screen fixed">
+    <div class="px-5 py-5 border-b border-slate-700">
+      <h1 class="font-bold text-white text-base">YT Rotate API</h1>
+      <p class="text-slate-500 text-xs mt-0.5">Admin Panel</p>
+    </div>
+    <nav class="flex-1 py-4 space-y-1 px-3">
+      <a href="/dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+        Dashboard
+      </a>
+      <a href="/provider-keys.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        Provider Keys
+      </a>
+      <a href="/user-keys.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-slate-700 text-white">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        User API Keys
+      </a>
+      <a href="/report.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Reports
+      </a>
+    </nav>
+    <div class="px-3 py-4 border-t border-slate-700">
+      <button id="logout-btn" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-red-400 text-sm rounded-lg hover:bg-slate-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="ml-56 flex-1 p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-white">User API Keys</h2>
+      <button id="add-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+        + Create Key
+      </button>
+    </div>
+
+    <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-700">
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Key</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Usage</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Rate Limit</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Created</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="keys-table" class="divide-y divide-slate-700">
+          <tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Create Key Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-white">Create User API Key</h3>
+        <button id="modal-close" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form id="key-form" class="px-6 py-5 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1">Name (optional)</label>
+          <input id="f-name" type="text" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="e.g. My App" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1">Rate Limit (requests/hour, 0 = unlimited)</label>
+          <input id="f-rate" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+        </div>
+        <div id="form-error" class="hidden text-red-400 text-sm"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="submit" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">Create</button>
+          <button type="button" id="form-cancel" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium rounded-lg transition-colors">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Key reveal modal -->
+  <div id="reveal-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-700">
+        <h3 class="text-base font-semibold text-white">New API Key Created</h3>
+        <p class="text-slate-400 text-sm mt-1">Copy this key now — it will be masked in the UI.</p>
+      </div>
+      <div class="px-6 py-5">
+        <div class="flex gap-2">
+          <code id="reveal-key" class="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-emerald-400 text-xs font-mono break-all"></code>
+          <button id="copy-key-btn" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm rounded-lg flex-shrink-0">Copy</button>
+        </div>
+        <button id="reveal-close" class="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm rounded-lg">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.removeItem('admin_token'); window.location.href = '/index.html'; });
+
+    let keys = [];
+    const modal = document.getElementById('modal');
+    const revealModal = document.getElementById('reveal-modal');
+    const closeModal = () => modal.classList.add('hidden');
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('form-cancel').addEventListener('click', closeModal);
+    document.getElementById('reveal-close').addEventListener('click', () => { revealModal.classList.add('hidden'); loadKeys(); });
+    document.getElementById('copy-key-btn').addEventListener('click', () => {
+      copyToClipboard(document.getElementById('reveal-key').textContent);
+    });
+
+    async function loadKeys() {
+      keys = await API.get('/user-keys');
+      renderTable();
+    }
+
+    function maskKey(k) {
+      return k.slice(0, 8) + '••••••••••••' + k.slice(-4);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('keys-table');
+      if (!keys.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">No user API keys yet. Create one to share with clients.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = keys.map(k => `
+        <tr class="hover:bg-slate-700/30">
+          <td class="px-6 py-3 text-slate-300">${k.name || '—'}</td>
+          <td class="px-6 py-3">
+            <div class="flex items-center gap-2">
+              <code class="text-xs text-emerald-400 font-mono">${maskKey(k.key)}</code>
+              <button onclick="copyToClipboard('${k.key}')" class="text-slate-500 hover:text-slate-300 text-xs">📋</button>
+            </div>
+          </td>
+          <td class="px-6 py-3">${statusBadge(k.status)}</td>
+          <td class="px-6 py-3 text-slate-300">${formatNumber(k.usageCount)}</td>
+          <td class="px-6 py-3 text-slate-400 text-xs">${k.rateLimit ? k.rateLimit + '/hr' : 'Unlimited'}</td>
+          <td class="px-6 py-3 text-slate-400 text-xs">${formatDate(k.createdAt)}</td>
+          <td class="px-6 py-3 text-right space-x-2">
+            ${k.status === 'active'
+              ? `<button onclick="toggleKey('${k._id}','disable')" class="text-xs px-3 py-1 bg-amber-900/40 hover:bg-amber-900/70 text-amber-300 rounded-lg transition-colors">Disable</button>`
+              : `<button onclick="toggleKey('${k._id}','enable')" class="text-xs px-3 py-1 bg-emerald-900/40 hover:bg-emerald-900/70 text-emerald-300 rounded-lg transition-colors">Enable</button>`
+            }
+            <button onclick="deleteKey('${k._id}')" class="text-xs px-3 py-1 bg-red-900/40 hover:bg-red-900/70 text-red-300 rounded-lg transition-colors">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function toggleKey(id, action) {
+      try {
+        await API.post(`/user-keys/${id}/${action}`);
+        toast(`Key ${action}d`);
+        loadKeys();
+      } catch (err) { toast(err.message, 'error'); }
+    }
+
+    async function deleteKey(id) {
+      if (!confirm('Delete this key? All clients using it will lose access.')) return;
+      try {
+        await API.delete(`/user-keys/${id}`);
+        toast('Key deleted');
+        loadKeys();
+      } catch (err) { toast(err.message, 'error'); }
+    }
+
+    document.getElementById('add-btn').addEventListener('click', () => {
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-rate').value = '0';
+      document.getElementById('form-error').classList.add('hidden');
+      modal.classList.remove('hidden');
+    });
+
+    document.getElementById('key-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('form-error');
+      errEl.classList.add('hidden');
+      try {
+        const created = await API.post('/user-keys', {
+          name: document.getElementById('f-name').value || undefined,
+          rateLimit: parseInt(document.getElementById('f-rate').value, 10),
+        });
+        closeModal();
+        document.getElementById('reveal-key').textContent = created.key;
+        revealModal.classList.remove('hidden');
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    loadKeys();
+  </script>
+</body>
+</html>

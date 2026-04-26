@@ -1,26 +1,16 @@
 {
   "version": 2,
+  "buildCommand": "npm run vercel-build",
   "builds": [
     {
-      "src": "apps/api/src/vercel.ts",
-      "use": "@vercel/node",
-      "config": {
-        "memory": 1024,
-        "maxDuration": 30
-      }
-    },
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
+      "src": "dist/lambda.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/apps/api/src/vercel.ts"
+      "src": "/(.*)",
+      "dest": "/dist/lambda.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
