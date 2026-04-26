@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserApiKey, UserApiKeyDocument } from '../../user-keys/schemas/user-api-key.schema';
+import { BruteForceService, getClientIp } from '../services/brute-force.service';
 
 /**
  * CombinedGuard:
@@ -24,17 +25,29 @@ export class CombinedGuard implements CanActivate {
     private readonly userApiKeyModel: Model<UserApiKeyDocument>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly bruteForce: BruteForceService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
+    const ip = getClientIp(req);
+    this.bruteForce.check(ip);
+
     const apiKeyHeader = req.headers['x-api-key'] as string;
-
-    if (apiKeyHeader) {
-      return this.validateApiKey(req, apiKeyHeader);
+    try {
+      const result = apiKeyHeader
+        ? await this.validateApiKey(req, apiKeyHeader)
+        : this.validateJwt(req);
+      this.bruteForce.success(ip);
+      return result;
+    } catch (err) {
+      // Don't count per-key rate-limit (429) as a brute-force failure
+      if (err instanceof HttpException && err.getStatus() === HttpStatus.TOO_MANY_REQUESTS) {
+        throw err;
+      }
+      this.bruteForce.fail(ip);
+      throw err;
     }
-
-    return this.validateJwt(req);
   }
 
   private async validateApiKey(req: any, key: string): Promise<boolean> {
