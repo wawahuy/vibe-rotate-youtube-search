@@ -2,9 +2,9 @@ import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { spawn, execFile } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
+import { getYtDlpPath } from '../common/utils/ytdlp-path.util';
 
 const execFileAsync = promisify(execFile);
-const YTDLP_BIN = process.env.YTDLP_PATH || 'yt-dlp';
 const VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/
 
 export interface VideoInfo {
@@ -44,9 +44,16 @@ export class VideoInfoService {
   }
 
   private runYtDlp(url: string): Promise<VideoInfo> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      let bin: string;
+      try {
+        bin = await getYtDlpPath();
+      } catch (err) {
+        reject(err);
+        return;
+      }
       // Using spawn with args array — no shell interpolation, safe from injection
-      const proc = spawn('yt-dlp', ['--no-playlist', '-J', url], {
+      const proc = spawn(bin, ['--no-playlist', '-J', url], {
         timeout: 30000,
       });
 
@@ -167,9 +174,10 @@ export class VideoInfoService {
       throw new HttpException('Invalid video ID', HttpStatus.BAD_REQUEST);
     }
     const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const bin = await getYtDlpPath();
     try {
       const { stdout } = await execFileAsync(
-        YTDLP_BIN,
+        bin,
         ['-j', '--no-playlist', '--no-warnings', url],
         { timeout: 30_000 },
       );
