@@ -6,6 +6,9 @@
     "apps/api",
     "apps/web"
   ],
+  "dependencies": {
+    "next": "^14.0.0"
+  },
   "scripts": {
     "dev:api": "cd apps/api && npm run start:dev",
     "dev:web": "cd apps/web && npm run dev",
