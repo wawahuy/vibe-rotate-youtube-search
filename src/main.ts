@@ -23,18 +23,16 @@ async function bootstrap() {
     credentials: true,
   });
 
-  if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('YouTube Rotate API')
-      .setDescription('YouTube API Key Rotation Service')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .addApiKey({ type: 'apiKey', in: 'header', name: 'x-api-key' }, 'x-api-key')
-      .build();
+        .setTitle('YouTube Rotate API')
+        .setDescription('YouTube API Key Rotation Service')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .addApiKey({ type: 'apiKey', in: 'header', name: 'x-api-key' }, 'x-api-key')
+        .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
     Logger.log('Swagger docs available at /api/docs', 'Bootstrap');
-  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
