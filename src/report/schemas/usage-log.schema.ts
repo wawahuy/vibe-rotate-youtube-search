@@ -34,6 +34,9 @@ export class UsageLog {
 
   @Prop()
   errorMessage: string;
+
+  @Prop({ type: Number, default: null })
+  executionTimeMs: number | null;
 }
 
 export const UsageLogSchema = SchemaFactory.createForClass(UsageLog);

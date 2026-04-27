@@ -109,6 +109,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Provider</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">User Key</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Duration</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Query</th>
             </tr>
           </thead>
@@ -281,7 +282,7 @@
 
       const tbody = document.getElementById('logs-table');
       if (!data.data.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">No logs found for this filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">No logs found for this filter.</td></tr>';
         return;
       }
       tbody.innerHTML = data.data.map(log => {
@@ -293,6 +294,7 @@
             <td class="px-6 py-2.5 text-slate-300 text-xs">${log.providerUsed || '—'}</td>
             <td class="px-6 py-2.5 text-slate-400 text-xs">${ukName}</td>
             <td class="px-6 py-2.5">${statusBadge(log.status)}</td>
+            <td class="px-6 py-2.5 text-slate-400 text-xs whitespace-nowrap">${log.executionTimeMs != null ? log.executionTimeMs + ' ms' : '—'}</td>
             <td class="px-6 py-2.5 text-slate-400 text-xs truncate max-w-xs">${log.query || '—'}</td>
           </tr>`;
       }).join('');

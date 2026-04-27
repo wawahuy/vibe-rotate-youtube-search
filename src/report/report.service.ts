@@ -14,6 +14,7 @@ export interface CreateLogDto {
   statusCode?: number;
   query?: string;
   errorMessage?: string;
+  executionTimeMs?: number | null;
 }
 
 @Injectable()
@@ -38,6 +39,7 @@ export class ReportService {
         statusCode: dto.statusCode || 200,
         query: dto.query || null,
         errorMessage: dto.errorMessage || null,
+        executionTimeMs: dto.executionTimeMs ?? null,
       });
     } catch (err) {
       this.logger.error(`Failed to create usage log: ${err.message}`);

@@ -20,6 +20,7 @@ export class VideoInfoController {
   @ApiQuery({ name: 'url', description: 'YouTube video URL', required: true })
   async getInfo(@Query('url') url: string, @Req() req: any) {
     const userApiKeyId = req.userApiKey?._id?.toString() || null;
+    const start = Date.now();
     try {
       const info = await this.videoInfoService.getVideoInfo(url);
       await this.reportService.createLog({
@@ -29,6 +30,7 @@ export class VideoInfoController {
         status: 'success',
         statusCode: 200,
         query: url,
+        executionTimeMs: Date.now() - start,
       });
       return info;
     } catch (err) {
@@ -40,6 +42,7 @@ export class VideoInfoController {
         statusCode: err.status || 500,
         query: url,
         errorMessage: err.message,
+        executionTimeMs: Date.now() - start,
       });
       throw err;
     }
@@ -50,6 +53,7 @@ export class VideoInfoController {
   @ApiQuery({ name: 'videoId', description: 'YouTube video ID (11 chars)', required: true })
   async getRaw(@Query('videoId') videoId: string, @Req() req: any) {
     const userApiKeyId = req.userApiKey?._id?.toString() || null;
+    const start = Date.now();
     try {
       const info = await this.videoInfoService.getRawInfo(videoId);
       await this.reportService.createLog({
@@ -59,6 +63,7 @@ export class VideoInfoController {
         status: 'success',
         statusCode: 200,
         query: videoId,
+        executionTimeMs: Date.now() - start,
       });
       return info;
     } catch (err) {
@@ -70,6 +75,7 @@ export class VideoInfoController {
         statusCode: err.status || 500,
         query: videoId,
         errorMessage: err.message,
+        executionTimeMs: Date.now() - start,
       });
       throw err;
     }

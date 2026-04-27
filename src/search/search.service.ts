@@ -17,6 +17,7 @@ export class SearchService {
   ) {}
 
   async search(query: string, userApiKeyId?: string): Promise<SearchResult[]> {
+    const start = Date.now();
     // ── Try YouTube first ────────────────────────────────────────────────────
     const ytKey = await this.keyRotation.getActiveKey('youtube');
     if (ytKey) {
@@ -31,6 +32,7 @@ export class SearchService {
           status: 'success',
           statusCode: 200,
           query,
+          executionTimeMs: Date.now() - start,
         });
         return results;
       } catch (err) {
@@ -56,6 +58,7 @@ export class SearchService {
           status: 'success',
           statusCode: 200,
           query,
+          executionTimeMs: Date.now() - start,
         });
         return results;
       } catch (err) {
@@ -72,6 +75,7 @@ export class SearchService {
           statusCode: err.status || 500,
           query,
           errorMessage: err.message,
+          executionTimeMs: Date.now() - start,
         });
         throw new HttpException(
           `All search providers failed: ${err.message}`,
@@ -90,6 +94,7 @@ export class SearchService {
       statusCode: 503,
       query,
       errorMessage: 'No active provider keys',
+      executionTimeMs: Date.now() - start,
     });
 
     throw new HttpException(

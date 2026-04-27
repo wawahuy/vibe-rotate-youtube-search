@@ -88,6 +88,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Endpoint</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Provider</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Duration</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Query</th>
             </tr>
           </thead>
@@ -121,7 +122,7 @@
 
         const tbody = document.getElementById('recent-logs');
         if (!data.recentLogs.length) {
-          tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">No activity yet</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">No activity yet</td></tr>';
           return;
         }
         tbody.innerHTML = data.recentLogs.map(log => `
@@ -130,6 +131,7 @@
             <td class="px-6 py-3 font-mono text-slate-300">${log.endpoint}</td>
             <td class="px-6 py-3 text-slate-300">${log.providerUsed || '—'}</td>
             <td class="px-6 py-3">${statusBadge(log.status)}</td>
+            <td class="px-6 py-3 text-slate-400 whitespace-nowrap">${log.executionTimeMs != null ? log.executionTimeMs + ' ms' : '—'}</td>
             <td class="px-6 py-3 text-slate-400 truncate max-w-xs">${log.query || '—'}</td>
           </tr>
         `).join('');
