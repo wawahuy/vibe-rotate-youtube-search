@@ -120,6 +120,36 @@
       <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-700 flex items-center gap-3">
           <span class="px-2 py-0.5 text-xs font-bold rounded bg-emerald-700 text-emerald-100">GET</span>
+          <code class="text-sm text-slate-200">/api/video-info/360p</code>
+        </div>
+        <div class="px-6 py-5 space-y-4">
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Video ID <span class="text-red-400">*</span></label>
+              <input id="video360-videoid" type="text" placeholder="e.g. dQw4w9WgXcQ"
+                class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
+            </div>
+            <div class="flex items-end">
+              <button id="video360-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Send
+              </button>
+            </div>
+          </div>
+          <div id="video360-result" class="hidden">
+            <div class="flex items-center gap-3 mb-2">
+              <span id="video360-status" class="text-xs font-medium px-2 py-0.5 rounded"></span>
+              <span id="video360-time" class="text-xs text-slate-500"></span>
+            </div>
+            <pre id="video360-json" class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-xs text-slate-300 overflow-auto max-h-96 whitespace-pre-wrap break-all"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Info Raw -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-700 flex items-center gap-3">
+          <span class="px-2 py-0.5 text-xs font-bold rounded bg-emerald-700 text-emerald-100">GET</span>
           <code class="text-sm text-slate-200">/api/video-info/raw</code>
         </div>
         <div class="px-6 py-5 space-y-4">
@@ -223,6 +253,23 @@
     });
     document.getElementById('videoinfo-url').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') document.getElementById('videoinfo-btn').click();
+    });
+
+    // Video Info 360p
+    document.getElementById('video360-btn').addEventListener('click', () => {
+      const videoId = document.getElementById('video360-videoid').value.trim();
+      if (!videoId) { document.getElementById('video360-videoid').focus(); return; }
+      callEndpoint({
+        path: `/video-info/360p?videoId=${encodeURIComponent(videoId)}`,
+        resultId: 'video360-result',
+        statusId: 'video360-status',
+        timeId: 'video360-time',
+        jsonId: 'video360-json',
+        btnId: 'video360-btn',
+      });
+    });
+    document.getElementById('video360-videoid').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('video360-btn').click();
     });
 
     // Video Info Raw

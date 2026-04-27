@@ -80,4 +80,37 @@ export class VideoInfoController {
       throw err;
     }
   }
+
+  @Get('360p')
+  @ApiOperation({ summary: 'Get direct 360p MP4 stream URL via yt-dlp (x-api-key or Bearer JWT)' })
+  @ApiQuery({ name: 'videoId', description: 'YouTube video ID (11 chars)', required: true })
+  async get360p(@Query('videoId') videoId: string, @Req() req: any) {
+    const userApiKeyId = req.userApiKey?._id?.toString() || null;
+    const start = Date.now();
+    try {
+      const data = await this.videoInfoService.get360pUrl(videoId);
+      await this.reportService.createLog({
+        endpoint: '/api/video-info/360p',
+        providerUsed: 'yt-dlp',
+        userApiKeyId,
+        status: 'success',
+        statusCode: 200,
+        query: videoId,
+        executionTimeMs: Date.now() - start,
+      });
+      return data;
+    } catch (err) {
+      await this.reportService.createLog({
+        endpoint: '/api/video-info/360p',
+        providerUsed: 'yt-dlp',
+        userApiKeyId,
+        status: 'error',
+        statusCode: err.status || 500,
+        query: videoId,
+        errorMessage: err.message,
+        executionTimeMs: Date.now() - start,
+      });
+      throw err;
+    }
+  }
 }

@@ -6,7 +6,7 @@ import { getYtDlpPath, getYtDlpBaseArgs } from '../common/utils/ytdlp-path.util'
 import { AppConfigService } from '../app-config/app-config.service';
 
 const execFileAsync = promisify(execFile);
-const VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/
+const VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 
 export interface VideoInfo {
   title: string;
@@ -43,6 +43,47 @@ export class VideoInfoService {
     } catch (ytDlpErr) {
       this.logger.warn(`yt-dlp failed for ${url}: ${ytDlpErr.message}. Using fallback.`);
       return this.fallback(url);
+    }
+  }
+
+  async get360pUrl(videoId: string): Promise<{ url: string }> {
+    if (!VIDEO_ID_RE.test(videoId)) {
+      throw new HttpException('Invalid video ID', HttpStatus.BAD_REQUEST);
+    }
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const cfg = await this.appConfigService.getYtDlpConfig();
+    const [bin, bypassArgs] = await Promise.all([getYtDlpPath(), getYtDlpBaseArgs(cfg)]);
+
+    try {
+      const { stdout } = await execFileAsync(
+        bin,
+        [
+          ...bypassArgs,
+          '-g',
+          '-f',
+          'best[height<=360][ext=mp4]',
+          '--no-playlist',
+          '--no-warnings',
+          url,
+        ],
+        { timeout: 30_000 },
+      );
+
+      const directUrl = stdout
+        .split('\n')
+        .map((line) => line.trim())
+        .find((line) => line.length > 0);
+
+      if (!directUrl) {
+        throw new Error('yt-dlp returned empty stream URL');
+      }
+
+      return { url: directUrl };
+    } catch (err) {
+      throw new HttpException(
+        `yt-dlp 360p failed: ${(err as Error).message}`,
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
