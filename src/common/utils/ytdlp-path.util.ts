@@ -177,7 +177,6 @@ export async function getYtDlpBaseArgs(
   if (proxy) {
     args.push('--proxy', proxy);
   }
-  console.debug(`yt-dlp base args: ${args.join(' ')}`);
 
   return args;
 }
