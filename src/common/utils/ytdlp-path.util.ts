@@ -3,8 +3,9 @@
  *
  * Strategy (tried in order):
  *  1. YTDLP_PATH env var — use as-is (local dev / custom server)
- *  2. /tmp/yt-dlp — already downloaded in this container's lifetime
- *  3. Download from GitHub Releases into /tmp/yt-dlp and make it executable
+ *  2. bin/yt-dlp_linux — bundled binary shipped alongside the app
+ *  3. /tmp/yt-dlp — already downloaded in this container's lifetime
+ *  4. Download from GitHub Releases into /tmp/yt-dlp and make it executable
  *
  * This is designed for environments like Vercel where yt-dlp is not
  * pre-installed but /tmp is writable (~512 MB).
@@ -23,12 +24,15 @@ import * as https from 'https';
 import { chmod, writeFile } from 'fs/promises';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { join } from 'path';
 
 const execFileAsync = promisify(execFile);
 const logger = new Logger('YtdlpPath');
 
 const TMP_BIN = '/tmp/yt-dlp';
 const TMP_COOKIES = '/tmp/yt-cookies.txt';
+// Bundled binary shipped alongside the app (e.g. bin/yt-dlp_linux in repo)
+const BUNDLED_BIN = join(__dirname, '..', '..', '..', 'bin', 'yt-dlp_linux');
 // Pinned release — bump as needed, or use /latest/download/ for always-latest
 const DOWNLOAD_URL =
   'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
@@ -98,7 +102,20 @@ export async function getYtDlpPath(): Promise<string> {
     return resolvedPath;
   }
 
-  // 2. Already downloaded in this container lifetime
+  // 2. Bundled binary shipped with the app (bin/yt-dlp_linux)
+  if (fs.existsSync(BUNDLED_BIN)) {
+    if (!await isExecutable(BUNDLED_BIN)) {
+      await chmod(BUNDLED_BIN, 0o755);
+    }
+    if (await isExecutable(BUNDLED_BIN)) {
+      logger.log(`Using bundled yt-dlp at ${BUNDLED_BIN}`);
+      resolvedPath = BUNDLED_BIN;
+      return resolvedPath;
+    }
+    logger.warn(`Bundled yt-dlp at ${BUNDLED_BIN} is not executable, falling through`);
+  }
+
+  // 3. Already downloaded in this container lifetime
   if (fs.existsSync(TMP_BIN)) {
     if (await isExecutable(TMP_BIN)) {
       logger.log(`Using cached yt-dlp at ${TMP_BIN}`);
@@ -109,7 +126,7 @@ export async function getYtDlpPath(): Promise<string> {
     fs.unlinkSync(TMP_BIN);
   }
 
-  // 3. Download from GitHub
+  // 4. Download from GitHub
   logger.log(`Downloading yt-dlp from ${DOWNLOAD_URL} → ${TMP_BIN}`);
   await downloadFile(DOWNLOAD_URL, TMP_BIN);
   await chmod(TMP_BIN, 0o755);
