@@ -34,7 +34,7 @@ const DOWNLOAD_URL =
   'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
 
 let resolvedPath: string | null = null;
-let cookiesWritten = false;
+let lastCookiesContent: string | null = null;
 
 /** Download a URL to a local file path, following redirects. */
 function downloadFile(url: string, dest: string): Promise<void> {
@@ -127,25 +127,40 @@ export async function getYtDlpPath(): Promise<string> {
  * Returns additional yt-dlp flags that bypass YouTube bot detection and
  * optionally attach a cookie session.
  *
- * Env vars:
- *  - YOUTUBE_COOKIES  — raw Netscape cookies.txt content (optional).
- *                       When set the content is written once to /tmp/yt-cookies.txt
- *                       and passed via --cookies.
+ * @param dbConfig  Config values from DB (takes precedence over env vars).
+ *
+ * Env var fallbacks (used when dbConfig value is empty):
+ *  - YOUTUBE_COOKIES        — raw Netscape cookies.txt content
+ *  - YOUTUBE_PROXY          — proxy URL (e.g. socks5://host:port)
+ *  - YOUTUBE_PLAYER_CLIENT  — ios | android | none  (default: ios)
  */
-export async function getYtDlpBaseArgs(): Promise<string[]> {
-  const args: string[] = [
-    // Use the iOS player client — avoids "Sign in to confirm" bot detection
-    '--extractor-args', 'youtube:player_client=ios',
-  ];
+export async function getYtDlpBaseArgs(
+  dbConfig?: { cookies?: string; proxy?: string; playerClient?: string },
+): Promise<string[]> {
+  const args: string[] = [];
 
-  const cookiesEnv = process.env.YOUTUBE_COOKIES;
-  if (cookiesEnv) {
-    if (!cookiesWritten) {
-      await writeFile(TMP_COOKIES, cookiesEnv, { mode: 0o600 });
-      cookiesWritten = true;
+  // player_client: DB → default 'none'
+  const playerClient = dbConfig?.playerClient || 'none';
+  if (playerClient && playerClient !== 'none') {
+    args.push('--extractor-args', `youtube:player_client=${playerClient}`);
+  }
+
+  // cookies: DB
+  const cookiesContent = dbConfig?.cookies;
+  if (cookiesContent) {
+    if (cookiesContent !== lastCookiesContent) {
+      await writeFile(TMP_COOKIES, cookiesContent, { mode: 0o600 });
+      lastCookiesContent = cookiesContent;
     }
     args.push('--cookies', TMP_COOKIES);
   }
+
+  // proxy: DB
+  const proxy = dbConfig?.proxy;
+  if (proxy) {
+    args.push('--proxy', proxy);
+  }
+  console.debug(`yt-dlp base args: ${args.join(' ')}`);
 
   return args;
 }

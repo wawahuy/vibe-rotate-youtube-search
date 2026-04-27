@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config — YouTube Rotate API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>if (!localStorage.getItem('admin_token')) window.location.href = '/index.html';</script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="w-56 bg-slate-800 border-r border-slate-700 flex flex-col min-h-screen fixed">
+    <div class="px-5 py-5 border-b border-slate-700">
+      <h1 class="font-bold text-white text-base">YT Rotate API</h1>
+      <p class="text-slate-500 text-xs mt-0.5">Admin Panel</p>
+    </div>
+    <nav class="flex-1 py-4 space-y-1 px-3">
+      <a href="/dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+        Dashboard
+      </a>
+      <a href="/provider-keys.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        Provider Keys
+      </a>
+      <a href="/user-keys.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        User API Keys
+      </a>
+      <a href="/report.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Reports
+      </a>
+      <a href="/test.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v11.5a3.5 3.5 0 007 0V3M6 3h12M5 20h14"/></svg>
+        API Test
+      </a>
+      <a href="/config.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-slate-700 text-white">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Config
+      </a>
+    </nav>
+    <div class="px-3 py-4 border-t border-slate-700">
+      <button id="logout-btn" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-red-400 text-sm rounded-lg hover:bg-slate-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="ml-56 flex-1 p-8 max-w-3xl">
+    <h2 class="text-xl font-bold text-white mb-2">Config</h2>
+    <p class="text-slate-400 text-sm mb-8">Settings are stored in the database. DB values take precedence over environment variables.</p>
+
+    <div id="loading" class="text-slate-500 text-sm">Loading…</div>
+
+    <form id="config-form" class="hidden space-y-6">
+
+      <!-- Player Client -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h3 class="text-base font-semibold text-white mb-1">Player Client</h3>
+        <p class="text-slate-400 text-xs mb-4">Which YouTube player client yt-dlp uses. <code class="text-slate-300">ios</code> and <code class="text-slate-300">android</code> bypass most bot-detection. <code class="text-slate-300">none</code> disables the flag entirely.</p>
+        <div class="flex gap-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="player_client" value="ios" class="accent-red-500" />
+            <span class="text-sm text-slate-200">ios</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="player_client" value="android" class="accent-red-500" />
+            <span class="text-sm text-slate-200">android</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="player_client" value="none" class="accent-red-500" />
+            <span class="text-sm text-slate-200">none</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Proxy -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h3 class="text-base font-semibold text-white mb-1">Proxy</h3>
+        <p class="text-slate-400 text-xs mb-4">Proxy URL passed to yt-dlp via <code class="text-slate-300">--proxy</code>. Supports HTTP, HTTPS, SOCKS4, SOCKS5. Leave empty to disable.</p>
+        <input
+          id="proxy-input"
+          type="text"
+          placeholder="e.g. socks5://user:pass@host:1080 or http://host:8080"
+          class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+        />
+      </div>
+
+      <!-- Cookies -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h3 class="text-base font-semibold text-white mb-1">YouTube Cookies</h3>
+        <p class="text-slate-400 text-xs mb-4">Paste the full content of a Netscape-format <code class="text-slate-300">cookies.txt</code> file exported from your browser. Leave empty to skip cookie auth.</p>
+        <textarea
+          id="cookies-input"
+          rows="10"
+          placeholder="# Netscape HTTP Cookie File&#10;# https://curl.se/docs/http-cookies.html&#10;.youtube.com	TRUE	/	TRUE	…"
+          class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono resize-y"
+        ></textarea>
+      </div>
+
+      <!-- Save -->
+      <div class="flex items-center gap-4">
+        <button
+          type="submit"
+          id="save-btn"
+          class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Save
+        </button>
+        <span id="save-msg" class="hidden text-sm font-medium"></span>
+      </div>
+
+    </form>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('admin_token');
+      window.location.href = '/index.html';
+    });
+
+    async function loadConfig() {
+      try {
+        const data = await API.get('/app-config');
+        const pc = data['youtube_player_client'] || 'ios';
+        const radio = document.querySelector(`input[name="player_client"][value="${pc}"]`);
+        if (radio) radio.checked = true;
+        else document.querySelector('input[name="player_client"][value="ios"]').checked = true;
+
+        document.getElementById('proxy-input').value = data['youtube_proxy'] || '';
+        document.getElementById('cookies-input').value = data['youtube_cookies'] || '';
+
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('config-form').classList.remove('hidden');
+      } catch (err) {
+        document.getElementById('loading').textContent = 'Failed to load config: ' + err.message;
+      }
+    }
+
+    document.getElementById('config-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      const msg = document.getElementById('save-msg');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      msg.classList.add('hidden');
+
+      const playerClient = document.querySelector('input[name="player_client"]:checked')?.value || 'ios';
+      const proxy = document.getElementById('proxy-input').value.trim();
+      const cookies = document.getElementById('cookies-input').value;
+
+      try {
+        await API.put('/app-config', {
+          youtube_player_client: playerClient,
+          youtube_proxy: proxy,
+          youtube_cookies: cookies,
+        });
+        msg.textContent = 'Saved successfully.';
+        msg.className = 'text-sm font-medium text-emerald-400';
+        msg.classList.remove('hidden');
+      } catch (err) {
+        msg.textContent = 'Error: ' + err.message;
+        msg.className = 'text-sm font-medium text-red-400';
+        msg.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+        setTimeout(() => msg.classList.add('hidden'), 4000);
+      }
+    });
+
+    loadConfig();
+  </script>
+</body>
+</html>

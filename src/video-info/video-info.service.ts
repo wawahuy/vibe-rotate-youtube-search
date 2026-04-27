@@ -3,6 +3,7 @@ import { spawn, execFile } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
 import { getYtDlpPath, getYtDlpBaseArgs } from '../common/utils/ytdlp-path.util';
+import { AppConfigService } from '../app-config/app-config.service';
 
 const execFileAsync = promisify(execFile);
 const VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/
@@ -22,6 +23,8 @@ export interface VideoInfo {
 @Injectable()
 export class VideoInfoService {
   private readonly logger = new Logger(VideoInfoService.name);
+
+  constructor(private readonly appConfigService: AppConfigService) {}
 
   async getVideoInfo(url: string): Promise<VideoInfo> {
     // Validate URL to prevent injection — must be a valid http/https URL
@@ -48,7 +51,8 @@ export class VideoInfoService {
       let bin: string;
       let bypassArgs: string[];
       try {
-        [bin, bypassArgs] = await Promise.all([getYtDlpPath(), getYtDlpBaseArgs()]);
+        const cfg = await this.appConfigService.getYtDlpConfig();
+        [bin, bypassArgs] = await Promise.all([getYtDlpPath(), getYtDlpBaseArgs(cfg)]);
       } catch (err) {
         reject(err);
         return;
@@ -175,7 +179,8 @@ export class VideoInfoService {
       throw new HttpException('Invalid video ID', HttpStatus.BAD_REQUEST);
     }
     const url = `https://www.youtube.com/watch?v=${videoId}`;
-    const [bin, bypassArgs] = await Promise.all([getYtDlpPath(), getYtDlpBaseArgs()]);
+    const cfg = await this.appConfigService.getYtDlpConfig();
+    const [bin, bypassArgs] = await Promise.all([getYtDlpPath(), getYtDlpBaseArgs(cfg)]);
     try {
       const { stdout } = await execFileAsync(
         bin,

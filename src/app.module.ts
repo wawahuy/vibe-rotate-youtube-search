@@ -14,6 +14,7 @@ import { UserKeysModule } from './user-keys/user-keys.module';
 import { KeyRotationModule } from './key-rotation/key-rotation.module';
 import { ReportModule } from './report/report.module';
 import { BruteForceModule } from './common/brute-force.module';
+import { AppConfigModule } from './app-config/app-config.module';
 
 // Resolve public directory: dist/public (prod) or project_root/public (dev)
 const builtPublic = join(__dirname, 'public');
@@ -45,6 +46,7 @@ const PUBLIC_DIR = existsSync(builtPublic) ? builtPublic : srcPublic;
     KeyRotationModule,
     ReportModule,
     BruteForceModule,
+    AppConfigModule,
   ],
   controllers: [AppController],
 })
